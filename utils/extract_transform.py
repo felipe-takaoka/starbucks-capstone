@@ -20,11 +20,17 @@ def loadAndCleanPortfolio():
 
   portfolio_df = portfolioWithChannelsEncoded.drop(columns="channels")
 
-  # Rename and order columns
+  # Give a descriptive name
+  portfolio_df["offer"] = portfolio_df["offer_type"].str[0] + "." + \
+    portfolio_df["difficulty"].astype(str) + "."  + \
+    portfolio_df["reward"].astype(str) + "."  + \
+    portfolio_df["duration"].astype(str)
+
+  # Rename and order columns and rows
   portfolio_df = portfolio_df.rename(columns={"id": "offer_id"})
-  cols = ["offer_id","offer_type","difficulty","reward","duration","email","mobile","social","web"]
-  assert set(cols) == set(portfolio_df.columns)
+  cols = ["offer_id","offer","offer_type","difficulty","reward","duration","email","mobile","social","web"]
   portfolio_df = portfolio_df[cols]
+  portfolio_df = portfolio_df.sort_values(["offer_type", "difficulty", "reward", "duration"])
 
   return portfolio_df
 

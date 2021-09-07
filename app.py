@@ -7,9 +7,15 @@ portfolio_df = loadAndCleanPortfolio()
 profile_df = loadAndCleanProfile()
 transcript_df = loadAndCleanTranscript()
 
-st.write(portfolio_df)
-st.write(profile_df)
-st.write(transcript_df.head(30))
+pages = ["Cleaned Inputs", "Customer Timeline", "Feature Engineering"]
+page = st.sidebar.radio("Select page", pages)
 
-transcript_feats = createTranscriptFeatures(transcript_df, portfolio_df, profile_df)
-st.write(transcript_feats.head(50))
+if page == "Cleaned Inputs":
+  st.write(portfolio_df)
+  st.write(profile_df.head(50))
+  st.write(transcript_df.head(50))
+elif page == "Customer Timeline":
+  st.title("Customer Timeline")
+elif page == "Feature Engineering":
+  transcript_feats = createTranscriptFeatures(transcript_df, portfolio_df, profile_df)
+  st.write(transcript_feats.head(50))

@@ -314,3 +314,26 @@ def getTrainingDataset(transcript_feats, Y_df):
     ).copy()
 
   return df
+
+
+def createDemographicGroups(profile):
+  """ Returns a dataframe containing the demographic groups defined
+  """
+
+  demographics = profile.copy()
+
+  # Age groups
+  demographics["age_group"] = pd.cut(demographics["age"], [0,30,50,70,100,200], labels=np.arange(5)+1)
+  # Income groups
+  demographics["income_group"] = pd.qcut(demographics["income"], [0,.2,.8,1], labels=[0,1,2])
+  # Cohort groups
+  demographics["became_member_on"] = pd.to_datetime(demographics["became_member_on"].astype(str)).astype(int)
+  bins = demographics["became_member_on"].value_counts(bins=100, sort=False).to_frame()
+  bins.columns = ["count"]
+  bins["dcount"] = bins["count"].shift(1) - bins["count"]
+  breaks = bins[abs(bins["dcount"])>100]
+  cohort_breaks = [0] + list(breaks.index.left) + list([demographics["became_member_on"].max()])
+  demographics["cohort_group"] = pd.cut(demographics["became_member_on"], cohort_breaks, labels=[1,2,3,4])
+
+  return demographics
+  

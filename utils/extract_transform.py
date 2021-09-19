@@ -41,14 +41,17 @@ def loadAndCleanPortfolio():
 
 
 @st.cache
-def cachedLoadAndCleanProfile():
-  return loadAndCleanProfile()
+def cachedLoadAndCleanProfile(raw=False):
+  return loadAndCleanProfile(raw)
 
-def loadAndCleanProfile():
+def loadAndCleanProfile(raw=False):
   """ Load and clean profile data
   """
 
   profile = pd.read_json('data/profile.json', orient='records', lines=True)
+
+  if raw:
+    return profile
 
   profile_df = profile.copy()
 
@@ -336,4 +339,3 @@ def createDemographicGroups(profile):
   demographics["cohort_group"] = pd.cut(demographics["became_member_on"], cohort_breaks, labels=[1,2,3,4])
 
   return demographics
-  

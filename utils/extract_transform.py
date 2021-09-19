@@ -237,3 +237,66 @@ def createTranscriptFeatures(transcript_df, portfolio_df, profile_df):
   transcript_feats = transcript_feats.merge(profile_df, on="person", how="left")
 
   return transcript_feats
+
+
+@st.cache
+def cachedCreateTargets(transcript_feats, portfolio_df):
+  return createTargets(transcript_feats, portfolio_df)
+
+def createTargets(transcript_feats, portfolio_df):
+  """Returns a dataframe containing the spendings for every time window of offer durations"""
+
+  # Auxiliary variables
+  dummy_base_ts = pd.Timestamp("2021-01-01")
+  last_event_ts = dummy_base_ts + pd.to_timedelta(transcript_feats["time"].max(), "h")
+  time_windows = sorted(24*portfolio_df["duration"].unique())
+
+  # Filter only relevant columns and rows
+  target_df = transcript_feats[["person","time","event","amount"]].copy()
+  target_df = target_df[target_df["event"].isin(["offer received", "transaction"])]
+  Y_df = target_df.copy()
+
+  # Add dummy events in the future (to make sure it exists an event at time t+time_window
+  # for every event occurring at time t) - this is done because rolling is only performed
+  # for previous rows
+  dummy_events = target_df.copy().rename(columns={"time": "orig_time"})
+  dummy_events["amount"] = 0
+  for time_window in time_windows:
+      dummy_events["time"] = dummy_events["orig_time"] + time_window
+      target_df = pd.concat([target_df, dummy_events.drop(columns="orig_time")])
+
+  # Group concurrent events
+  # A dummy base timestamp is used because it's needed in the following rolling function
+  target_df["ts"] = dummy_base_ts + pd.to_timedelta(target_df["time"], "h")
+  target_df = target_df.drop(columns="time")
+  target_df = target_df.groupby(["person","ts"], as_index=False).sum()
+
+  # Calculate the future spending for each time window (offer durations)
+  for time_window in time_windows:
+      # Rolling sums (closed on the left endpoint so that transactions occurring at the same time, i.e. hour,
+      # are included in the future spending)
+      rs = target_df.groupby("person", as_index=False).rolling(f"{time_window}h", on="ts", closed="left").sum()
+      rs_spending_col_name = f"spending_next_{time_window}h"
+      rs = rs.rename(columns={"amount": rs_spending_col_name})
+
+      # Set spendings to NA if time window contains events after the last time in the dataset
+      rs[rs_spending_col_name] = rs[rs_spending_col_name].where(rs["ts"] < last_event_ts)
+
+      # Shifts events by the time_window so that the rolling sum is over the future
+      rs["time"] = (rs["ts"]-dummy_base_ts).dt.total_seconds()/3600 - time_window
+      rs["time"] = rs["time"].astype(int)
+      rs = rs.drop(columns="ts")
+
+      Y_df = Y_df.merge(rs, on=["person","time"], how="left")
+
+  # Change spending targets to be defined in exclusive time windows
+  # that way inference with the fitted models are guaranteed to be monotonically non-decreasing
+  for i in range(len(time_windows)-1, 0, -1):
+      spending_col = f"spending_next_{time_windows[i]}h"
+      prev_spending_col = f"spending_next_{time_windows[i-1]}h"
+      Y_df[spending_col] -= Y_df[prev_spending_col]
+
+  Y_df = Y_df[Y_df["event"]=="offer received"]
+  Y_df = Y_df.drop(columns=["event","amount"])
+
+  return Y_df

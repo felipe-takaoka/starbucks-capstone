@@ -125,6 +125,18 @@ def getPromoFunnel(transcript_df, portfolio_df):
   )
 
 
+def getOffersDist(transcript_df, portfolio_df):
+  """Get a dataframe containing the distribution of offers received"""
+  received_offers = transcript_df[transcript_df["event"]=="offer received"]
+  offers_dist = transcript_df.groupby("offer_id", as_index=False).size()
+  offers_dist["size"] /= offers_dist["size"].sum()
+  offers_dist["size"] -= 1/offers_dist.shape[0]
+  offers_dist = offers_dist.merge(portfolio_df, on="offer_id")
+  offers_dist = offers_dist.sort_values("size")
+
+  return offers_dist
+
+
 @st.cache
 def createTranscriptFeatures(transcript_df, portfolio_df, profile_df):
   """ xxx

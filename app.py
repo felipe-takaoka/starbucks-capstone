@@ -43,5 +43,5 @@ elif page == "Customer Timeline":
   pass
 
 elif page == "Feature Engineering":
-  transcript_feats = createTranscriptFeatures(transcript_df, portfolio_df, profile_df)
+  transcript_feats = cachedCreateTranscriptFeatures(transcript_df, portfolio_df, profile_df)
   st.write(transcript_feats.head(50))

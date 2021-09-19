@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 
 @st.cache
@@ -106,6 +108,21 @@ def loadAndCleanTranscript():
   transcript_df["reward"] = transcript_df["reward"].fillna(0)
 
   return transcript_df
+
+
+def getPromoFunnel(transcript_df, portfolio_df):
+  """Get a dataframe containing funnel data of offers"""
+  # Effectiveness of each channel in converting with promotion
+  promo_funnel = transcript_df.groupby(["offer_id", "event"]).size().unstack()
+  promo_funnel = promo_funnel.fillna(0).astype(int)
+  promo_funnel["view_rate"] = promo_funnel["offer viewed"] / promo_funnel["offer received"]
+  promo_funnel["comp_rate"] = promo_funnel["offer completed"] / promo_funnel["offer viewed"]
+  promo_funnel = promo_funnel.reset_index()
+
+  return portfolio_df.merge(promo_funnel, on="offer_id").sort_values(
+      ["type", "difficulty", "reward", "duration"],
+      ascending=[True, True, False, False]
+  )
 
 
 @st.cache

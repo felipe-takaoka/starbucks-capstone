@@ -300,3 +300,17 @@ def createTargets(transcript_feats, portfolio_df):
   Y_df = Y_df.drop(columns=["event","amount"])
 
   return Y_df
+
+
+def getTrainingDataset(transcript_feats, Y_df):
+  """Returns the training dataset by joining the features and target and filtering
+  for received offer events
+  """
+
+  df_full = transcript_feats[transcript_feats["event"]=="offer received"].copy()
+  df_full = df_full.merge(Y_df, on=["person","time"], how="left").reset_index(drop=True)
+  df = df_full.drop(columns=[
+      "person","event_no","time","event","amount","reward","offer_id","offer_code"]
+    ).copy()
+
+  return df

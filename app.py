@@ -27,6 +27,14 @@ if page == "Offers Portfolio":
     for step in ["offer received", "offer viewed", "offer completed"]
   ])
   st.plotly_chart(fig)
+  st.write("Note that customers can complelte an offer without ever viewing it.")
+
+  st.subheader("Sent Offers Distribution")
+  offer_dist = getOffersDist(transcript_df, portfolio_df)
+  fig = go.Figure(data=
+    go.Bar(x=offer_dist["size"], y=offer_dist["code"], orientation="h")
+  )
+  st.plotly_chart(fig)
 
   st.subheader("Data")
   st.write(promo_funnel)

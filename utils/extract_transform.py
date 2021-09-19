@@ -138,20 +138,24 @@ def getOffersDist(transcript_df, portfolio_df):
 
 
 @st.cache
+def cachedCreateTranscriptFeatures(transcript_df, portfolio_df, profile_df):
+  return createTranscriptFeatures(transcript_df, portfolio_df, profile_df)
+
 def createTranscriptFeatures(transcript_df, portfolio_df, profile_df):
-  """ xxx
+  """ Returns dataframe containing useful features for predicting customer behaviour
   """
 
   transcript_feats = transcript_df.copy()
 
   # Create dummy variables for the events (to perform a cumulative sum)
   transcript_feats = pd.concat([transcript_feats, pd.get_dummies(transcript_feats["event"])], axis=1)
+  transcript_feats["event_no_aux"] = 1
 
   # Define the columns to aggregate, their function and their new name
   agg_cols = {
       # original column name: (agg function, agg column name)
-      "event_no": ("max", "event_no"),
-      "amount": ("sum", "spending"),
+      "event_no_aux": ("sum", "event_no"),
+      "amount": ("sum", "cum_spending"),
       "reward": ("sum", "cum_reward"),
       "transaction": ("sum", "transactions"),
       "offer received": ("sum", "offers_received"),
@@ -166,19 +170,20 @@ def createTranscriptFeatures(transcript_df, portfolio_df, profile_df):
   transcript_aggs = transcript_feats.groupby("person").expanding().agg(aggs)
   transcript_aggs = transcript_aggs.rename(columns=rename)
   transcript_aggs = transcript_aggs.reset_index().drop(columns="level_1")
+  transcript_feats = transcript_feats.drop(columns="event_no_aux")
   transcript_feats = transcript_feats.merge(transcript_aggs, on=["person", "event_no"])
 
   # Subtract the current "event" so that they account only for the past (without information not available on inference time)
-  cols_subtract = [col for col in agg_cols.keys() if col not in ["event_no", "time"]]
+  cols_subtract = [col for col in agg_cols.keys() if col not in ["event_no_aux", "time"]]
   cols_keep = [rename[col] for col in cols_subtract]
   transcript_feats.loc[:, cols_keep] -= transcript_feats.loc[:, cols_subtract].values
 
   # Time since each person's first event
-  transcript_feats["time_customer"] = transcript_feats["time"] - transcript_feats["min_time"]
+  transcript_feats["time_since_first_event"] = transcript_feats["time"] - transcript_feats["min_time"]
   transcript_feats = transcript_feats.drop(columns="min_time")
 
   # Average transaction value (up to that point)
-  transcript_feats["atv"] = transcript_feats["spending"] / transcript_feats["transactions"]
+  transcript_feats["atv"] = transcript_feats["cum_spending"] / transcript_feats["transactions"]
   # Percentage of offers completed (completed / received) - up to that point
   transcript_feats["offer_usage"] = transcript_feats["offers_completed"] / transcript_feats["offers_received"]
 
@@ -191,7 +196,7 @@ def createTranscriptFeatures(transcript_df, portfolio_df, profile_df):
       event_name = event.replace(' ','_')
       cols_aux = ["person", event_count, "time"]
       col_last_event_at = f"last_{event_name}_at"
-      # Create filtered dataframe with the last event times
+      # Create filtered dataframe with the times of previous events
       event_times = transcript_feats.loc[transcript_feats["event"]==event, cols_aux]
       event_times[event_count] += 1
       # Join the two dataframes and calculate the time since the last event
@@ -204,6 +209,29 @@ def createTranscriptFeatures(transcript_df, portfolio_df, profile_df):
   portfolio_renamed = portfolio_df.copy()
   portfolio_renamed.columns = [f"offer_{col}" if col!="offer_id" else col for col in portfolio_renamed]
   transcript_feats = transcript_feats.merge(portfolio_renamed, on="offer_id", how="left")
+  # Change offer duration to hours and create time until offers are valid
+  transcript_feats["offer_duration"] = 24*transcript_feats["offer_duration"]
+
+  # Add customer offer timeline
+  # 1. Select only relevant rows and columns
+  received_offers = transcript_feats[transcript_feats["event"]=="offer received"]
+  received_offers = received_offers[["person","event_no","time","event","offer_code","offer_duration"]]
+  offer_dummies = pd.get_dummies(received_offers["offer_code"], prefix="active")
+  received_offers = pd.concat([received_offers, offer_dummies], axis=1)
+  # 2. Repeat rows of offers by their time duration in hours
+  rep_index = received_offers.index.repeat(received_offers["offer_duration"])
+  active_offers = received_offers.drop(columns=["event","offer_code","offer_duration"]).loc[rep_index]
+  active_offers["time"] += active_offers.groupby(["person","event_no"]).cumcount()
+  # 3. Aggregate the offers by person and time, taking all the valid offers at that time and join
+  active_offers = active_offers.drop(columns="event_no").groupby(["person","time"], as_index=False).max()
+  transcript_feats = transcript_feats.merge(active_offers, on=["person","time"], how="left")
+  # 4. Fill NA and convert value of active offer columns (if it's na, customer didn\t receive it)
+  offer_cols = [f"active_{offer}" for offer in portfolio_df["code"]]
+  transcript_feats[offer_cols] = transcript_feats[offer_cols].fillna(0).astype(int)
+
+  # Transform remaining offer data
+  offer_type_dummies = pd.get_dummies(transcript_feats["offer_type"], prefix="offer_type")
+  transcript_feats = pd.concat([transcript_feats.drop(columns="offer_type"), offer_type_dummies], axis=1)
 
   # Add demografic data
   transcript_feats = transcript_feats.merge(profile_df, on="person", how="left")

@@ -29,11 +29,16 @@ if page == "Offers Portfolio":
   st.plotly_chart(fig)
   st.write("Note that customers can complelte an offer without ever viewing it.")
 
-  st.subheader("Sent Offers Distribution")
+  st.subheader("Sent Offers Distribution (deviation from uniform distribution)")
   offer_dist = getOffersDist(transcript_df, portfolio_df)
   fig = go.Figure(data=
     go.Bar(x=offer_dist["size"], y=offer_dist["code"], orientation="h")
   )
+  delta_max = offer_dist["size"].abs().max() + .01
+  fig.update_layout(xaxis={
+    "tickformat": ',.0%',
+    "range": [-delta_max, delta_max]
+  })
   st.plotly_chart(fig)
 
   st.subheader("Data")
@@ -43,5 +48,10 @@ elif page == "Customer Timeline":
   pass
 
 elif page == "Feature Engineering":
+  st.subheader("Features Engineering")
   transcript_feats = cachedCreateTranscriptFeatures(transcript_df, portfolio_df, profile_df)
   st.write(transcript_feats.head(50))
+
+  st.subheader("Targets (Spendings)")
+  Y_df = cachedCreateTargets(transcript_feats, portfolio_df)
+  st.write(Y_df.head(50))

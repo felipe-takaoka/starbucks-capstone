@@ -4,6 +4,9 @@ import numpy as np
 
 
 @st.cache
+def cachedLoadAndCleanPortfolio():
+  return loadAndCleanPortfolio()
+
 def loadAndCleanPortfolio():
   """ Load and clean portfolio data
   """
@@ -27,15 +30,18 @@ def loadAndCleanPortfolio():
     portfolio_df["duration"].astype(str)
 
   # Rename and order columns and rows
-  portfolio_df = portfolio_df.rename(columns={"id": "offer_id"})
-  cols = ["offer_id","code","offer_type","difficulty","reward","duration","email","mobile","social","web"]
+  portfolio_df = portfolio_df.rename(columns={"id": "offer_id", "offer_type": "type"})
+  cols = ["offer_id","code","type","difficulty","reward","duration","email","mobile","social","web"]
   portfolio_df = portfolio_df[cols]
-  portfolio_df = portfolio_df.sort_values(["offer_type", "difficulty", "reward", "duration"])
+  portfolio_df = portfolio_df.sort_values(["type", "difficulty", "reward", "duration"])
 
   return portfolio_df
 
 
 @st.cache
+def cachedLoadAndCleanProfile():
+  return loadAndCleanProfile()
+
 def loadAndCleanProfile():
   """ Load and clean profile data
   """
@@ -56,6 +62,9 @@ def loadAndCleanProfile():
 
 
 @st.cache
+def cachedLoadAndCleanTranscript():
+  return loadAndCleanTranscript()
+
 def loadAndCleanTranscript():
   """ Load and clean transcript data
   """

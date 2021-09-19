@@ -3,9 +3,9 @@ import pandas as pd
 import numpy as np
 from utils.extract_transform import *
 
-portfolio_df = loadAndCleanPortfolio()
-profile_df = loadAndCleanProfile()
-transcript_df = loadAndCleanTranscript()
+portfolio_df = cachedLoadAndCleanPortfolio()
+profile_df = cachedLoadAndCleanProfile()
+transcript_df = cachedLoadAndCleanTranscript()
 
 pages = ["Cleaned Inputs", "Customer Timeline", "Feature Engineering"]
 page = st.sidebar.radio("Select page", pages)

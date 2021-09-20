@@ -76,23 +76,26 @@ def spendingsPerDemographicsBar(df, feat):
   
   fig, ax = plt.subplots(figsize=(4, 2))
 
+  palette = "PuRd"
+  errcolor = "white"
+
   if feat != "offer_code":
     sns.barplot(
       x=feat,
       y="spending_offer_duration",
       data=df,
-      palette="Blues_d",
+      palette=palette,
       ax=ax,
-      errcolor="white"
+      errcolor=errcolor
     )
   else:
     sns.barplot(
       x="spending_offer_duration",
       y=feat,
       data=df,
-      palette="Blues_d",
+      palette=palette,
       ax=ax,
-      errcolor="white"
+      errcolor=errcolor
     )
 
   return fig

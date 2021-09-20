@@ -61,11 +61,28 @@ elif page == "Offer Responsiveness - Descriptive Approach":
   susceptibility, spendings = createSpendingsPerGroup(df_full, demographics, time_windows, return_raw=True)
   feat_cols = ["age_group", "income_group", "cohort_group", "gender", "offer_code"]
 
+  st.subheader("Spendings per Demographic Feature")
   col1, col2 = st.columns(2)
   feat = col2.radio("Demographic Feature", feat_cols)
   col1.pyplot(spendingsPerDemographicsBar(susceptibility, feat))
 
-  st.subheader("Data")
+  st.subheader("Best Demographic Groups")
+  st.write("Select the features for defining the demographic groups")
+  col1, col2 = st.columns(2)
+  with col1:
+    cb_age = st.checkbox("Age", True)
+    cb_income = st.checkbox("Income", True)
+    offer_types = st.multiselect("Offer Types", portfolio_df["code"])
+  with col2:
+    cb_gender = st.checkbox("Gender", True)
+    cb_cohort = st.checkbox("Cohort", False)
+    min_group_size = st.slider("Minimum Group Size", 0, 100, 30)
+
+  demog_feats = zip(feat_cols[:-1], [cb_age, cb_income, cb_cohort, cb_gender])
+  demog_feats = [f for f,use in demog_feats if use]
+
+  spendings = spendingsForOffers(susceptibility, offer_types, demog_feats, min_group_size)
+  spendings = spendings.style.bar(subset=["spending_median"], color="#F63366")
   st.write(spendings)
 
 elif page == "Feature Engineering":

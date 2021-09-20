@@ -64,5 +64,5 @@ def demographicDistributionBarH(df, feat):
 def demographicDistributionHist(df, feat):
   """ Returns a figure with the histogram of a demographic feature
   """
-
-  return px.histogram(df, x=demog_cols[feat], color=demog_group_cols[feat])
+  df_subset = df.dropna(subset=[demog_cols[feat]])
+  return px.histogram(df_subset, x=demog_cols[feat], color=demog_group_cols[feat])

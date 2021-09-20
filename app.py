@@ -6,14 +6,29 @@ from utils.charts import *
 
 # Load and clean dataframes
 portfolio_df = cachedLoadAndCleanPortfolio()
-profile_df = cachedLoadAndCleanProfile()
+profile, profile_df = cachedLoadAndCleanProfile(return_raw=True)
 transcript_df = cachedLoadAndCleanTranscript()
 
-pages = ["Offers Portfolio", "Demographic Groups", "Feature Engineering"]
+# Create demographic groups
+demographics = createDemographicGroups(profile)
+# Feature engineering
+transcript_feats = cachedCreateTranscriptFeatures(transcript_df, portfolio_df, profile_df)
+# Create target
+Y_df = cachedCreateTargets(transcript_feats, portfolio_df)
+# Create full dataset for model fitting
+df_full, df = getTrainingDataset(transcript_feats, Y_df, return_df_full=True)
+
+# Page options
+pages = [
+  "Offers Portfolio",
+  "Demographic Groups",
+  "Offer Responsiveness - Descriptive Approach",
+  "Feature Engineering"
+]
 page = st.sidebar.radio("Select page", pages)
 
+# Page contents
 st.title(page)
-
 if page == "Offers Portfolio":
   promo_funnel = getPromoFunnel(transcript_df, portfolio_df)
 
@@ -29,9 +44,6 @@ if page == "Offers Portfolio":
   st.write(promo_funnel)
 
 elif page == "Demographic Groups":
-  profile = cachedLoadAndCleanProfile(raw=True)
-  demographics = createDemographicGroups(profile)
-
   st.subheader("Distribution of Demographic Groups")
 
   col1, col2 = st.columns(2)
@@ -42,13 +54,16 @@ elif page == "Demographic Groups":
     st.plotly_chart(demographicDistributionHist(demographics, demog_feat))
 
   st.subheader("Data")
-  st.write(demographics.head())
+  st.write(demographics.head(50))
+
+elif page == "Offer Responsiveness - Descriptive Approach":
+  time_windows = sorted(24*portfolio_df["duration"].unique())
+  spendings = createSpendingsPerGroup(df_full, demographics, time_windows)
+  st.write(spendings)
 
 elif page == "Feature Engineering":
-  st.subheader("Features Engineering")
-  transcript_feats = cachedCreateTranscriptFeatures(transcript_df, portfolio_df, profile_df)
+  st.subheader("Features Engineering")  
   st.write(transcript_feats.head(50))
 
   st.subheader("Targets (Spendings)")
-  Y_df = cachedCreateTargets(transcript_feats, portfolio_df)
   st.write(Y_df.head(50))

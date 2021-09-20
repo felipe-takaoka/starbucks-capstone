@@ -41,17 +41,14 @@ def loadAndCleanPortfolio():
 
 
 @st.cache
-def cachedLoadAndCleanProfile(raw=False):
-  return loadAndCleanProfile(raw)
+def cachedLoadAndCleanProfile(return_raw=False):
+  return loadAndCleanProfile(return_raw)
 
-def loadAndCleanProfile(raw=False):
+def loadAndCleanProfile(return_raw=False):
   """ Load and clean profile data
   """
 
   profile = pd.read_json('data/profile.json', orient='records', lines=True)
-
-  if raw:
-    return profile
 
   profile_df = profile.copy()
 
@@ -63,7 +60,10 @@ def loadAndCleanProfile(raw=False):
   profile_df = profile_df.rename(columns={"id": "person"})
   profile_df = profile_df[["person", "age", "income", "became_member_on", "F", "M"]]
 
-  return profile_df
+  if return_raw:
+    return profile, profile_df
+  else:
+    return profile_df
 
 
 @st.cache
@@ -305,7 +305,7 @@ def createTargets(transcript_feats, portfolio_df):
   return Y_df
 
 
-def getTrainingDataset(transcript_feats, Y_df):
+def getTrainingDataset(transcript_feats, Y_df, return_df_full=False):
   """Returns the training dataset by joining the features and target and filtering
   for received offer events
   """
@@ -316,7 +316,10 @@ def getTrainingDataset(transcript_feats, Y_df):
       "person","event_no","time","event","amount","reward","offer_id","offer_code"]
     ).copy()
 
-  return df
+  if return_df_full:
+    return df_full, df
+  else:
+    return df
 
 
 def createDemographicGroups(profile):
@@ -339,3 +342,40 @@ def createDemographicGroups(profile):
   demographics["cohort_group"] = pd.cut(demographics["became_member_on"], cohort_breaks, labels=[1,2,3,4])
 
   return demographics
+
+
+def createSpendingsPerGroup(df_full, demographics, time_windows):
+  """ Returns a dataframe containing the customer spendings upon receiving an offer
+  up until its validity grouped by each demographic group
+  """
+
+  # Merge the demographic data
+  demog_cols = ["age_group", "income_group", "cohort_group", "gender"]
+  demographics_groups = demographics[["id"] + demog_cols]
+  demographics_groups = demographics_groups.rename(columns={"id": "person"})
+  susceptibility = df_full.merge(demographics_groups, on="person", how="left")
+
+  # Coalesce spending windows into a spending for the specific duration of the offer received
+  target_col = "spending_offer_duration"
+  for t in time_windows:
+      spend_col = f"spending_next_{t}h"
+      window_mask = susceptibility["offer_duration"]==t
+      susceptibility.loc[window_mask, target_col] = susceptibility.loc[window_mask, spend_col]
+
+  # Subset columns
+  feat_cols = demog_cols + ["offer_code"]
+  susceptibility = susceptibility[feat_cols + [target_col]]
+
+  # Drop rows where the end of the offer exceeded the last observed time
+  susceptibility = susceptibility.dropna(subset=[target_col])
+
+  # Get aggregate spendings by demographic groups and offers (median to filter outliers)
+  agg_metrics = {target_col: ["median","size"]}
+  metric_names = ["spending_median", "size"]
+  spendings_per_groups = susceptibility.groupby(feat_cols).agg(agg_metrics).reset_index()
+  spendings_per_groups.columns = feat_cols + metric_names
+
+  # Drop groups with small sample size
+  spendings_per_groups = spendings_per_groups[spendings_per_groups["size"] >= 30]
+
+  return spendings_per_groups

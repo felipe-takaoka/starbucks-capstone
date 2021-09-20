@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 import plotly.express as px
 import plotly.io as pio
+import seaborn as sns
 import streamlit as st
 
 # Set the chart themes
@@ -64,5 +65,34 @@ def demographicDistributionBarH(df, feat):
 def demographicDistributionHist(df, feat):
   """ Returns a figure with the histogram of a demographic feature
   """
+
   df_subset = df.dropna(subset=[demog_cols[feat]])
   return px.histogram(df_subset, x=demog_cols[feat], color=demog_group_cols[feat])
+
+
+def spendingsPerDemographicsBar(df, feat):
+  """ Returns a figure with the spendings per group of the demographic feature
+  """
+  
+  fig, ax = plt.subplots(figsize=(4, 2))
+
+  if feat != "offer_code":
+    sns.barplot(
+      x=feat,
+      y="spending_offer_duration",
+      data=df,
+      palette="Blues_d",
+      ax=ax,
+      errcolor="white"
+    )
+  else:
+    sns.barplot(
+      x="spending_offer_duration",
+      y=feat,
+      data=df,
+      palette="Blues_d",
+      ax=ax,
+      errcolor="white"
+    )
+
+  return fig

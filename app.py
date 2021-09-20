@@ -58,7 +58,14 @@ elif page == "Demographic Groups":
 
 elif page == "Offer Responsiveness - Descriptive Approach":
   time_windows = sorted(24*portfolio_df["duration"].unique())
-  spendings = createSpendingsPerGroup(df_full, demographics, time_windows)
+  susceptibility, spendings = createSpendingsPerGroup(df_full, demographics, time_windows, return_raw=True)
+  feat_cols = ["age_group", "income_group", "cohort_group", "gender", "offer_code"]
+
+  col1, col2 = st.columns(2)
+  feat = col2.radio("Demographic Feature", feat_cols)
+  col1.pyplot(spendingsPerDemographicsBar(susceptibility, feat))
+
+  st.subheader("Data")
   st.write(spendings)
 
 elif page == "Feature Engineering":

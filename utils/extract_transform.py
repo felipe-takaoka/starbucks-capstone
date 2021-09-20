@@ -344,7 +344,7 @@ def createDemographicGroups(profile):
   return demographics
 
 
-def createSpendingsPerGroup(df_full, demographics, time_windows):
+def createSpendingsPerGroup(df_full, demographics, time_windows, return_raw=False):
   """ Returns a dataframe containing the customer spendings upon receiving an offer
   up until its validity grouped by each demographic group
   """
@@ -378,4 +378,7 @@ def createSpendingsPerGroup(df_full, demographics, time_windows):
   # Drop groups with small sample size
   spendings_per_groups = spendings_per_groups[spendings_per_groups["size"] >= 30]
 
-  return spendings_per_groups
+  if return_raw:
+    return susceptibility, spendings_per_groups
+  else:
+    return spendings_per_groups

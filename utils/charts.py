@@ -40,7 +40,7 @@ def demographicDistributionFig(df, feat):
 
   demog_cols = {"Age": "age_group", "Income": "income_group", "Cohort": "cohort_group", "Gender": "gender"}
   group_dist = df[demog_cols[feat]].value_counts(normalize=True, sort=False)
-  fig, ax = plt.subplots()
+  fig, ax = plt.subplots(figsize=(5,2))
   group_dist.plot.barh(ax=ax)
   ax.set_xticklabels(["{:,.0%}".format(x) for x in ax.get_xticks()])
   ax.grid(axis="x")

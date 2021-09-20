@@ -28,7 +28,7 @@ def promoFunnelFig(promo_funnel):
 
   return go.Figure(data=[
     go.Bar(name=step, x=promo_funnel[step], y=promo_funnel["code"], orientation="h")
-    for step in ["offer received", "offer viewed", "offer completed"]
+    for step in ["offer completed", "offer viewed", "offer received"]
   ])
 
 

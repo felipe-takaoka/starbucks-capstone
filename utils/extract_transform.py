@@ -364,7 +364,7 @@ def createSpendingsPerGroup(df_full, demographics, time_windows, return_raw=Fals
 
   # Subset columns
   feat_cols = demog_cols + ["offer_code"]
-  susceptibility = susceptibility[feat_cols + [target_col]]
+  susceptibility = susceptibility[["person"] + feat_cols + [target_col]]
 
   # Drop rows where the end of the offer exceeded the last observed time
   susceptibility = susceptibility.dropna(subset=[target_col])
@@ -398,3 +398,44 @@ def spendingsForOffers(df, offers, demog_feats, min_group_size):
   spendings = spendings.sort_values("spending_median", ascending=False)
   
   return spendings
+
+
+def bestOfferForGroup(df, porfolio, group_def):
+  """ Returns the best offer for a demographic group
+  """
+
+  # Filter demographic group
+  for feat_col, group in group_def:
+    df = df[df[feat_col]==group]
+
+  # Normalize the spending by the offer duration to compare different offers
+  df = df.merge(porfolio, left_on="offer_code", right_on="code", how="left")
+  df["spending_offer_duration"] /= df["duration"]
+
+  # Group by offer code
+  agg_metrics = {"spending_offer_duration": ["median","size"]}
+  metric_names = ["spending_median", "size"]
+  df = df.groupby("offer_code").agg(agg_metrics).reset_index()
+  df.columns = ["offer_code"] + metric_names
+
+  # Sort
+  df = df.sort_values("spending_median", ascending=False)  
+
+  return df.head()
+
+
+def getGroupStats(group_def, demographics, susceptibility):
+  """ Returns some metrics corresponding to a demographic group
+  """
+
+  # Filter demographic group
+  for feat_col, group in group_def:
+    demographics = demographics[demographics[feat_col]==group]
+    susceptibility = susceptibility[susceptibility[feat_col]==group]
+
+  # Calculate metrics
+  n_customers = demographics.shape[0]
+  n_offers_sent = susceptibility.shape[0]
+  n_unique_customers_with_offer = susceptibility["person"].nunique()
+  
+  return n_customers, n_unique_customers_with_offer, n_offers_sent

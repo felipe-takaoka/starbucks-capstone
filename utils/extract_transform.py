@@ -382,3 +382,19 @@ def createSpendingsPerGroup(df_full, demographics, time_windows, return_raw=Fals
     return susceptibility, spendings_per_groups
   else:
     return spendings_per_groups
+
+
+def spendingsForOffers(df, offers, demog_feats, min_group_size):
+  """Returns a dataframe containing the spendings filtered by offers and grouped by demographic groups"""
+
+  # Filter by offer types and group by demographic groups
+  agg_metrics = {"spending_offer_duration": ["median","size"]}
+  metric_names = ["spending_median", "size"]
+  spendings = df[df["offer_code"].isin(offers)].groupby(demog_feats).agg(agg_metrics).reset_index()
+  spendings.columns = demog_feats + metric_names
+
+  # Filter by group size and sort by spending
+  spendings = spendings[spendings["size"]>=min_group_size]
+  spendings = spendings.sort_values("spending_median", ascending=False)
+  
+  return spendings

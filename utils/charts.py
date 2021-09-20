@@ -3,8 +3,9 @@ import plotly.graph_objects as go
 import plotly.io as pio
 import streamlit as st
 
-# Set the default plotly theme
+# Set the chart themes
 pio.templates.default = "none"
+plt.style.use('dark_background')
 
 
 def promoFunnelFig(promo_funnel):
@@ -41,6 +42,7 @@ def demographicDistributionFig(df, feat):
   group_dist = df[demog_cols[feat]].value_counts(normalize=True, sort=False)
   fig, ax = plt.subplots()
   group_dist.plot.barh(ax=ax)
+  ax.set_xticklabels(["{:,.0%}".format(x) for x in ax.get_xticks()])
+  ax.grid(axis="x")
 
   return fig
-  

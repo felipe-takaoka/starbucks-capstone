@@ -35,8 +35,8 @@ elif page == "Demographic Groups":
   st.subheader("Distribution of Demographic Groups")
 
   col1, col2 = st.columns(2)
-  demog_feat = col1.radio("Demographic Feature", ["Age","Income","Cohort","Gender"])
-  col2.pyplot(demographicDistributionFig(demographics, demog_feat))
+  demog_feat = col2.radio("Demographic Feature", ["Age","Income","Cohort","Gender"])
+  col1.pyplot(demographicDistributionFig(demographics, demog_feat))
 
   st.subheader("Data")
   st.write(demographics.head())

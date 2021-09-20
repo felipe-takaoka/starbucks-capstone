@@ -1,11 +1,25 @@
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
+import plotly.express as px
 import plotly.io as pio
 import streamlit as st
 
 # Set the chart themes
 pio.templates.default = "none"
 plt.style.use('dark_background')
+
+# Auxiliary variables and lookup dictionaries
+demog_cols = {
+  "Age": "age",
+  "Income": "income",
+  "Cohort": "became_member_on"
+}
+demog_group_cols = {
+  "Age": "age_group",
+  "Income": "income_group",
+  "Cohort": "cohort_group",
+  "Gender": "gender"
+}
 
 
 def promoFunnelFig(promo_funnel):
@@ -34,15 +48,21 @@ def sentOffersDistributionFig(offer_dist):
   return fig
 
 
-def demographicDistributionFig(df, feat):
-  """ Returns a figure with the value counts of a demographic feature
+def demographicDistributionBarH(df, feat):
+  """ Returns a figure with the value counts of a demographic feature in a horizontal bar chart
   """
 
-  demog_cols = {"Age": "age_group", "Income": "income_group", "Cohort": "cohort_group", "Gender": "gender"}
-  group_dist = df[demog_cols[feat]].value_counts(normalize=True, sort=False)
+  group_dist = df[demog_group_cols[feat]].value_counts(normalize=True, sort=False)
   fig, ax = plt.subplots(figsize=(5,2))
   group_dist.plot.barh(ax=ax)
   ax.set_xticklabels(["{:,.0%}".format(x) for x in ax.get_xticks()])
   ax.grid(axis="x")
 
   return fig
+
+
+def demographicDistributionHist(df, feat):
+  """ Returns a figure with the histogram of a demographic feature
+  """
+
+  return px.histogram(df, x=demog_cols[feat], color=demog_group_cols[feat])

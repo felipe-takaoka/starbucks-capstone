@@ -36,7 +36,10 @@ elif page == "Demographic Groups":
 
   col1, col2 = st.columns(2)
   demog_feat = col2.radio("Demographic Feature", ["Age","Income","Cohort","Gender"])
-  col1.pyplot(demographicDistributionFig(demographics, demog_feat))
+  col1.pyplot(demographicDistributionBarH(demographics, demog_feat))
+
+  if demog_feat != "Gender":
+    st.plotly_chart(demographicDistributionHist(demographics, demog_feat))
 
   st.subheader("Data")
   st.write(demographics.head())

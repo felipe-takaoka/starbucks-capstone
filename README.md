@@ -61,7 +61,28 @@ Multiple improvements could be made in this project, such as:
 * **Problem structuring**: since the model was trained on a dataset filtered by events of offers received, it didn't learn to predict customer behaviour when no offers are given and are active. Including these "observational" samples in the training dataset would allow us to compare the strategy of sending each type of offer to the strategy of simply not sending any offer. Since customers may make purchases even while not receiving any offers, this would allow us to be much more efficient and the campaign to be more profitable.
 
 ## Using the Web App
+The web app is divided in four sections
 
+### Offers Portfolio
+This sections gives a visual exploration of the portfolio of offers in two charts:
+1. The offer funnel that contains the amount of offers received, viewed and completed
+2. The distribution of different offer types and how they deviate from the uniform distribution
+![img](assets/offers_portfolio.png)
+
+### Demographic Groups
+This section gives an overview of the defined demographic groups used in the descriptive approach. It provides visualizations of the distribution of demographic groups based on different features.
+![img](assets/demographic_groups.png)
+
+### Offer Responsiveness - Descriptive Approach
+This section provides the solution for determining the offers using a descriptive approach. It comprises of three subsections
+1. Spendings per Demographic Feature: it shows how the response variable varies by groups of demographic feature and also by offer type
+2. Best Demographic Groups per Offer: by selecting which features the user want to define demographic groups, an offer and the minimum sample size required inside each group, it returns a table containing the best groups to be targetted by the offer
+3. Best Offer per Demographic Group: here we have the opposite. By defining a specific demographic group it returns the top 5 offers to be sent to them
+![img](assets/descriptive.png)
+
+### Offer Responsiveness - Predictive Approach
+This last section provides the solution for determining the offers using a predictive approach. By selecting a specific customer and a time (after the last simulated time in the dataset), it predicts how much that customer will spend in different time windows for different offers. This allows the user to determine at the individual level the best offer to be sent.
+![img](assets/predictive.png)
 
 ## Acknowledgements
 This project was developed as part of the Udacity Data Scientist Nanodegree Capstone Project and credit for making the dataset available goes to Starbucks.

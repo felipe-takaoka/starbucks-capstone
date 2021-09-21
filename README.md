@@ -1,7 +1,17 @@
 # Starbucks Capstone Project
 
-## Project Motivation
+## Project Definition
+
+### Project Overview
 This project was developed as part of the Udacity Data Scientist Nanodegree Capstone Project. Given a simulated dataset provided by Starbucks that mimics customer behavior on the Starbucks rewards mobile app, the task is to determine which demographic groups respond best to which offer type.
+
+### Project Statement
+Once every few days, Starbucks sends out an offer to users of the mobile app. An offer can be merely an advertisement for a drink or an actual offer such as a discount or BOGO (buy one get one free). Some users might not receive any offer during certain weeks. Not all users receive the same offer, and that is the challenge to solve with this data set.
+
+The task is to combine transaction, demographic and offer data to determine which demographic groups respond best to which offer type. This data set is a simplified version of the real Starbucks app because the underlying simulator only has one product whereas Starbucks actually sells dozens of products.
+
+### Metrics
+The metric that we'll be optimizing for is the amount each customer spends upon receiving an offer, since it allows us to eventually define thresholds to sending offers and being profitable at the individual level.
 
 ## Files Description
 * `Starbucks_Capstone_notebook.ipynb` is the notebook for all the analysis and documentation of the developed solutions
@@ -37,6 +47,23 @@ After installing this libraries, you the running the following command in the te
 streamlit run app.py 
 ```
 
+## Analysis
+### Data Exploration
+The datasets contain a set of 10 different offers sent to different customers, eventually more than once. They are roughly equally distributed and are of three major types: BOGO, discount and informational. Although there is no discernible pattern, the discount offer with difficulty 10, reward 2 and duration 10 seems to be the most effective offer whereas the informational one with duration 4 seems to be the least, which would be expected.
+
+Customers are described by different features, such as age, income, the date they became members, and their gender. They have different ages with a higher concentration around 50 to 70 years old, and a outlier group around 120 year, which most likely corresponds to customers not wanting to identify their age. They became members on four distinctive cohorts, which were used to group them in demographic groups. As for the income, there is a higher concentration for medium and low income, but not all customers reported that data. The same happens to genders, which, as expected, are concentrated in males and females, but there is a small portion to missing data and undefined.
+
+### Data Visualization
+When grouped by their demographic features, we can see some interesting patterns regarding their spending upon receiving offers.
+1. As the age progresses, people tend to spend more (with the exception of the outliers in group 5, who most likely don't have that stated age)
+2. The higher the income, the higher they spend (as should be expected)
+3. The last but one oldest customers (cohort 2) are the ones who spend the most, with a impressive difference of 2 times the second highest cohort spending
+4. Female customers spend more on average. Also those that don't identify themselves, who are expected to be either female or male, have a spending between the two groups with a greater spread, because of their sample size
+5. The offer that results in the biggest spending per day during its duration is the discount with difficulty 10, reward 2 and duration 10, whereas the one that results in the lowest is the informational with duration 4.
+
+![img](assets/spendings.png)
+
+
 ## Project Conclusion
 
 The problem addressed in this project is a really common task found in retail, but nonetheless difficult to model and get it right. In fact, most companies face dilemmas regarding marketing decisions such as which offer they should sent to which customers, how much reward, how long and how difficult should it be. These are hard questions that can must be addressed in order to survive in a highly competitive environment where data is becoming abundant and companies are getting more and more proficient in using them to decision making. At the same time offers help customers engange and spend, they also educate them in being more price sensitive. In case a company fails in providing effective offers to its customers, it will rapidly fade behind its competition or will have a hard time generating profit.
@@ -47,7 +74,7 @@ There are multiple ways this problem can be solved. The objective being to deter
 
 The response to an offer is defined as the amount each customer spends in the following days upon receiving it.
 
-### Discussion of Results
+### Reflection
 In the Descriptive Approach, customers were segmented by their demographic information forming different groups. These were then evaluated in terms of how much they spent by each different offer type. This approaches offers the advantages that it's easier to create marketing campaigns to interpretable and "thematic" coarse customer groups; it may be better suited for new campaigns, where experts can make useful inputs to the offers; and also it makes it easy to report results and ensure stakeholders can grasp the idea and make the correct data driven decisions. However, this approach, doesn't really captures customer patterns and idiosyncrasies that may be useful for predicting their behaviour more accurately.
 
 In the Predictive Approach, this is solved through feature engineering the events that each customer makes. This allows us to build a predictive model that captures more subtle patterns and accurately predicts how much each customer will spend when receiving different types of offers. That is to say that we can individually tailor the best offer to each customer based on his/her behaviour. The result is that, with this fine grained targetting, we avoid sending offers to customers who would have spent independently of receiving an offer, and we make sure that we send offers to customers who only buys when receiving relevant benefits. This can greatly improve the marketing campaign profit.

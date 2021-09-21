@@ -8,7 +8,7 @@ def loadModels():
   """ Loads the fitted predictive models to infer the customer's spendings for different offers
   """
 
-  with open("models.pickle", "rb") as handle:
+  with open("models/models_v2.pickle", "rb") as handle:
     models = pickle.load(handle)
 
   return models
@@ -93,7 +93,7 @@ def predictCustomerSpendings(df):
     col_target = model["target"].replace("spending_next_", "")
 
     # Predict
-    df_with_pred[col_target] = model["classifier"].predict(df)
+    df_with_pred[col_target] = model["regressor"].predict(df)
 
     # Recreate cumulative spending target (since they were trained as incremental)
     df_with_pred[col_target] += prev_spending

@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from utils.extract_transform import *
+from utils.inference import *
 from utils.charts import *
 
 # Load and clean dataframes
@@ -23,7 +24,7 @@ pages = [
   "Offers Portfolio",
   "Demographic Groups",
   "Offer Responsiveness - Descriptive Approach",
-  "Feature Engineering"
+  "Offer Responsiveness - Predictive Approach"
 ]
 page = st.sidebar.radio("Select page", pages)
 
@@ -118,9 +119,23 @@ elif page == "Offer Responsiveness - Descriptive Approach":
   st.write(best_offers)
 
 
-elif page == "Feature Engineering":
-  st.subheader("Features Engineering")  
-  st.write(transcript_feats.head(50))
+elif page == "Offer Responsiveness - Predictive Approach":
+  models = loadModels()
 
-  st.subheader("Targets (Spendings)")
-  st.write(Y_df.head(50))
+  st.header("Spending Inference")
+  person = st.selectbox("Select the customer", profile_df["person"])
+  last_sim_time = int(transcript_df["time"].max())
+  time = st.slider("Time to send offer", last_sim_time+1, 800)
+
+  with st.expander("See Customer Timeline and Features"):
+    st.subheader("Customer Timeline")
+    st.write(getCustomerTimeline(transcript_df, person))
+
+    st.subheader("Customer Features")
+    customerFeats = getCustomerFeatures(person, time, transcript_feats, portfolio_df)
+    st.write(dropAuxFeatures(customerFeats))
+
+  st.subheader("Spending Predictions")
+  customerSpendings = predictCustomerSpendings(customerFeats)
+  customerSpendings = customerSpendings.style.background_gradient("rocket")
+  st.write(customerSpendings)

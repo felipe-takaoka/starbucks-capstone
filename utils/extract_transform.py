@@ -298,6 +298,15 @@ def createTargets(transcript_feats, portfolio_df):
   return Y_df
 
 
+def dropAuxFeatures(df):
+  """ Returns a copy of the dataframe with auxiliary columns not used for inferece dropped
+  """
+
+  return df.drop(columns=[
+      "person","event_no","time","event","amount","reward","offer_id","offer_code"]
+    ).copy()
+
+
 def getTrainingDataset(transcript_feats, Y_df, return_df_full=False):
   """Returns the training dataset by joining the features and target and filtering
   for received offer events
@@ -305,9 +314,7 @@ def getTrainingDataset(transcript_feats, Y_df, return_df_full=False):
 
   df_full = transcript_feats[transcript_feats["event"]=="offer received"].copy()
   df_full = df_full.merge(Y_df, on=["person","time"], how="left").reset_index(drop=True)
-  df = df_full.drop(columns=[
-      "person","event_no","time","event","amount","reward","offer_id","offer_code"]
-    ).copy()
+  df = dropAuxFeatures(df_full)
 
   if return_df_full:
     return df_full, df
@@ -429,3 +436,10 @@ def getGroupStats(group_def, demographics, demog_spendings):
   n_unique_offers = demog_spendings["offer_code"].nunique()
   
   return n_customers, n_offers_sent, n_unique_offers
+
+
+def getCustomerTimeline(transcript_df, customer):
+  df = transcript_df[transcript_df["person"]==customer]
+  df = df.drop(columns=["person"]).set_index("event_no")
+
+  return df

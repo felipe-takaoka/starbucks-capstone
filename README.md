@@ -1,5 +1,23 @@
-# starbucks-capstone
-Udacity Data Scientist Capstone Project
+# Starbucks Capstone Project
+
+## Project Motivation
+This project was developed as part of the Udacity Data Scientist Nanodegree Capstone Project. Given a simulated dataset provided by Starbucks that mimics customer behavior on the Starbucks rewards mobile app, the task is to determine which demographic groups respond best to which offer type.
+
+## Files Description
+* `Starbucks_Capstone_notebook.ipynb` is the notebook for all the analysis and documentation of the developed solutions
+* `app.py` contains the main code for running the web app
+* `requirements.txt` contains list of dependencies for running the notebook and web app
+* `docker-compose.yml` and `Dockerfile` are used to create the docker image to run the web app
+* `utils` holds the utility functions used by the web app
+    * `charts.py` contains code for creating the visualizations
+    * `extract_transform.py` contains code for managing extraction and transformation tasks on the data
+    * `inference.py` contains code for making the predictions
+* `models` is the folder containing all fitted models used for inference
+* `data` contains all the datasets used for the project (more details are provided in the notebook)
+    * `portfolio.json`: containing offer ids and meta data about each offer (duration, type, etc.)
+    * `profile.json`: demographic data for each customer
+    * `transcript.json`: records for transactions, offers received, offers viewed, and offers completed
+
 
 ## Getting Started
 ### Running with Docker

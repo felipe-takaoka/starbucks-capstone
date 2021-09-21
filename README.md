@@ -37,8 +37,31 @@ After installing this libraries, you the running the following command in the te
 streamlit run app.py 
 ```
 
-## To Do List
-- [ ] `nb` Refit model
-- [ ] `nb` Create unit tests
-- [ ] `nb` Assert effectiveness of sending offers (obs.: subject to confounder bias of sending the offer)
-- [ ] `nb` Create feature of number of future offers sent and refit model
+## Project Conclusion
+
+The problem addressed in this project is a really common task found in retail, but nonetheless difficult to model and get it right. In fact, most companies face dilemmas regarding marketing decisions such as which offer they should sent to which customers, how much reward, how long and how difficult should it be. These are hard questions that can must be addressed in order to survive in a highly competitive environment where data is becoming abundant and companies are getting more and more proficient in using them to decision making. At the same time offers help customers engange and spend, they also educate them in being more price sensitive. In case a company fails in providing effective offers to its customers, it will rapidly fade behind its competition or will have a hard time generating profit.
+
+There are multiple ways this problem can be solved. The objective being to determine which demographic groups respond best to which offer type, two approaches were developped in this project.
+1. **Descriptive Approach**
+2. **Predictive Approach**
+
+The response to an offer is defined as the amount each customer spends in the following days upon receiving it.
+
+### Discussion of Results
+In the Descriptive Approach, customers were segmented by their demographic information forming different groups. These were then evaluated in terms of how much they spent by each different offer type. This approaches offers the advantages that it's easier to create marketing campaigns to interpretable and "thematic" coarse customer groups; it may be better suited for new campaigns, where experts can make useful inputs to the offers; and also it makes it easy to report results and ensure stakeholders can grasp the idea and make the correct data driven decisions. However, this approach, doesn't really captures customer patterns and idiosyncrasies that may be useful for predicting their behaviour more accurately.
+
+In the Predictive Approach, this is solved through feature engineering the events that each customer makes. This allows us to build a predictive model that captures more subtle patterns and accurately predicts how much each customer will spend when receiving different types of offers. That is to say that we can individually tailor the best offer to each customer based on his/her behaviour. The result is that, with this fine grained targetting, we avoid sending offers to customers who would have spent independently of receiving an offer, and we make sure that we send offers to customers who only buys when receiving relevant benefits. This can greatly improve the marketing campaign profit.
+
+Finally, by creating a web app with both the solutions, the user can decide which solution provides the best method for he/her use case. Since it integrates interactive data visualizations, it also assists the user in analyzing the results in a faster way.
+
+### Improvements
+Multiple improvements could be made in this project, such as:
+* **Choice of model, parameter grid, feature engineering**: the first improvement to be noted would be tweking the model to minimize the error of the predictive model (which is not good)
+* **Target definition**: here the task was framed as a regression problem to infer how much the customer would spend in the period of the offer being sent. This could be changed to a classification problem, where we only try to predict if he/she will make a purchase. This will most likely increase the ability to predict, but we loose information that could be used to determine if the offer is worth it (i.e., the spending exceeds the amount of the reward the customer gets by completing the offer). Another possible improvement would be to, instead of having multiple targets, have one target and one aditional feature that informs the time window to predict the spending. This would be highly benefitial, since it would allow a continuous prediction and could be useful for designing new offers.
+* **Problem structuring**: since the model was trained on a dataset filtered by events of offers received, it didn't learn to predict customer behaviour when no offers are given and are active. Including these "observational" samples in the training dataset would allow us to compare the strategy of sending each type of offer to the strategy of simply not sending any offer. Since customers may make purchases even while not receiving any offers, this would allow us to be much more efficient and the campaign to be more profitable.
+
+## Using the Web App
+
+
+## Acknowledgements
+This project was developed as part of the Udacity Data Scientist Nanodegree Capstone Project and credit for making the dataset available goes to Starbucks.

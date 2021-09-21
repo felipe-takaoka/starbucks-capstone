@@ -400,7 +400,7 @@ def spendingsForOffers(df, offers, demog_feats, min_group_size):
   return spendings
 
 
-def bestOfferForGroup(df, porfolio, group_def):
+def bestOfferForGroup(df, portfolio, group_def):
   """ Returns the best offer for a demographic group
   """
 
@@ -409,7 +409,7 @@ def bestOfferForGroup(df, porfolio, group_def):
     df = df[df[feat_col]==group]
 
   # Normalize the spending by the offer duration to compare different offers
-  df = df.merge(porfolio, left_on="offer_code", right_on="code", how="left")
+  df = df.merge(portfolio, left_on="offer_code", right_on="code", how="left")
   df["spending_offer_duration"] /= df["duration"]
 
   # Group by offer code

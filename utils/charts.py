@@ -82,7 +82,7 @@ def spendingsPerDemographicsBar(df, feat):
   if feat != "offer_code":
     sns.barplot(
       x=feat,
-      y="spending_offer_duration",
+      y="daily_offer_spending",
       data=df,
       palette=palette,
       ax=ax,
@@ -90,7 +90,7 @@ def spendingsPerDemographicsBar(df, feat):
     )
   else:
     sns.barplot(
-      x="spending_offer_duration",
+      x="daily_offer_spending",
       y=feat,
       data=df,
       palette=palette,

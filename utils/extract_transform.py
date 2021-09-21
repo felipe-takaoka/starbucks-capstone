@@ -346,33 +346,34 @@ def createSpendingsPerGroup(df_full, demographics, time_windows, return_raw=Fals
   demog_cols = ["age_group", "income_group", "cohort_group", "gender"]
   demographics_groups = demographics[["id"] + demog_cols]
   demographics_groups = demographics_groups.rename(columns={"id": "person"})
-  susceptibility = df_full.merge(demographics_groups, on="person", how="left")
+  demog_spendings = df_full.merge(demographics_groups, on="person", how="left")
 
   # Coalesce spending windows into a spending for the specific duration of the offer received
-  target_col = "spending_offer_duration"
+  # and normalize by the offer duration
+  target_col = "daily_offer_spending"
   for t in time_windows:
       spend_col = f"spending_next_{t}h"
-      window_mask = susceptibility["offer_duration"]==t
-      susceptibility.loc[window_mask, target_col] = susceptibility.loc[window_mask, spend_col]
+      window_mask = demog_spendings["offer_duration"]==t
+      demog_spendings.loc[window_mask, target_col] = demog_spendings.loc[window_mask, spend_col] / (t/24)
 
   # Subset columns
   feat_cols = demog_cols + ["offer_code"]
-  susceptibility = susceptibility[["person"] + feat_cols + [target_col]]
+  demog_spendings = demog_spendings[feat_cols + [target_col]]
 
   # Drop rows where the end of the offer exceeded the last observed time
-  susceptibility = susceptibility.dropna(subset=[target_col])
+  demog_spendings = demog_spendings.dropna(subset=[target_col])
 
   # Get aggregate spendings by demographic groups and offers (median to filter outliers)
   agg_metrics = {target_col: ["median","size"]}
   metric_names = ["spending_median", "size"]
-  spendings_per_groups = susceptibility.groupby(feat_cols).agg(agg_metrics).reset_index()
+  spendings_per_groups = demog_spendings.groupby(feat_cols).agg(agg_metrics).reset_index()
   spendings_per_groups.columns = feat_cols + metric_names
 
   # Drop groups with small sample size
   spendings_per_groups = spendings_per_groups[spendings_per_groups["size"] >= 30]
 
   if return_raw:
-    return susceptibility, spendings_per_groups
+    return demog_spendings, spendings_per_groups
   else:
     return spendings_per_groups
 
@@ -381,7 +382,7 @@ def spendingsForOffers(df, offers, demog_feats, min_group_size):
   """Returns a dataframe containing the spendings filtered by offers and grouped by demographic groups"""
 
   # Filter by offer types and group by demographic groups
-  agg_metrics = {"spending_offer_duration": ["median","size"]}
+  agg_metrics = {"daily_offer_spending": ["median","size"]}
   metric_names = ["spending_median", "size"]
   spendings = df[df["offer_code"].isin(offers)].groupby(demog_feats).agg(agg_metrics).reset_index()
   spendings.columns = demog_feats + metric_names
@@ -401,12 +402,8 @@ def bestOfferForGroup(df, portfolio, group_def):
   for feat_col, group in group_def:
     df = df[df[feat_col]==group]
 
-  # Normalize the spending by the offer duration to compare different offers
-  df = df.merge(portfolio, left_on="offer_code", right_on="code", how="left")
-  df["spending_offer_duration"] /= df["duration"]
-
   # Group by offer code
-  agg_metrics = {"spending_offer_duration": ["median","size"]}
+  agg_metrics = {"daily_offer_spending": ["median","size"]}
   metric_names = ["spending_median", "size"]
   df = df.groupby("offer_code").agg(agg_metrics).reset_index()
   df.columns = ["offer_code"] + metric_names
@@ -417,18 +414,18 @@ def bestOfferForGroup(df, portfolio, group_def):
   return df.head()
 
 
-def getGroupStats(group_def, demographics, susceptibility):
+def getGroupStats(group_def, demographics, demog_spendings):
   """ Returns some metrics corresponding to a demographic group
   """
 
   # Filter demographic group
   for feat_col, group in group_def:
     demographics = demographics[demographics[feat_col]==group]
-    susceptibility = susceptibility[susceptibility[feat_col]==group]
+    demog_spendings = demog_spendings[demog_spendings[feat_col]==group]
 
   # Calculate metrics
   n_customers = demographics.shape[0]
-  n_offers_sent = susceptibility.shape[0]
-  n_unique_customers_with_offer = susceptibility["person"].nunique()
+  n_offers_sent = demog_spendings.shape[0]
+  n_unique_offers = demog_spendings["offer_code"].nunique()
   
-  return n_customers, n_unique_customers_with_offer, n_offers_sent
+  return n_customers, n_offers_sent, n_unique_offers

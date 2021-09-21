@@ -58,13 +58,13 @@ elif page == "Demographic Groups":
 
 elif page == "Offer Responsiveness - Descriptive Approach":
   time_windows = sorted(24*portfolio_df["duration"].unique())
-  susceptibility, spendings = createSpendingsPerGroup(df_full, demographics, time_windows, return_raw=True)
+  demog_spendings, spendings = createSpendingsPerGroup(df_full, demographics, time_windows, return_raw=True)
   feat_cols = ["age_group", "income_group", "cohort_group", "gender", "offer_code"]
 
   st.subheader("Spendings per Demographic Feature")
   col1, col2 = st.columns(2)
   feat = col2.radio("Demographic Feature", feat_cols)
-  col1.pyplot(spendingsPerDemographicsBar(susceptibility, feat))
+  col1.pyplot(spendingsPerDemographicsBar(demog_spendings, feat))
 
   st.subheader("Best Demographic Groups per Offer")
   st.write("Select the features for defining the demographic groups")
@@ -81,7 +81,7 @@ elif page == "Offer Responsiveness - Descriptive Approach":
   demog_feats = zip(feat_cols[:-1], [cb_age, cb_income, cb_cohort, cb_gender])
   demog_feats = [f for f,use in demog_feats if use]
 
-  spendings_offers = spendingsForOffers(susceptibility, offer_types, demog_feats, min_group_size)
+  spendings_offers = spendingsForOffers(demog_spendings, offer_types, demog_feats, min_group_size)
   spendings_offers = spendings_offers.style.bar(subset=["spending_median"], color="#F63366")
   st.write(spendings_offers)
 
@@ -105,15 +105,15 @@ elif page == "Offer Responsiveness - Descriptive Approach":
     cohort = st.selectbox("Cohort Group", spendings["cohort_group"].unique(), key="GroupsCohort")
     if cb_cohort: group_def.append(("cohort_group", cohort))
 
-  metrics = getGroupStats(group_def, demographics, susceptibility)
-  n_customers, n_unique_customers_with_offer, n_offers_sent = metrics
+  metrics = getGroupStats(group_def, demographics, demog_spendings)
+  n_customers, n_offers_sent, n_unique_offers = metrics
   col1, col2, col3 = st.columns(3)
-  col1.metric("Eligible Customers in Group", n_customers)
-  col2.metric("Unique Customers With Offer", n_unique_customers_with_offer)
-  col3.metric("Offers sent", n_offers_sent)
+  col1.metric("Customers in Group", n_customers)
+  col2.metric("Offers Sent", n_offers_sent)
+  col3.metric("Offer Types Sent", n_unique_offers)
 
   st.markdown("**Top 5 Offers to Send to Demographic Group**")
-  best_offers = bestOfferForGroup(susceptibility, portfolio_df, group_def)
+  best_offers = bestOfferForGroup(demog_spendings, portfolio_df, group_def)
   best_offers = best_offers.style.bar(subset=["spending_median"], color="#F63366")
   st.write(best_offers)
 

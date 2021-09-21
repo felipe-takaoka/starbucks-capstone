@@ -33,19 +33,19 @@ st.title(page)
 if page == "Offers Portfolio":
   promo_funnel = getPromoFunnel(transcript_df, portfolio_df)
 
-  st.subheader("Offer Funnel")
+  st.header("Offer Funnel")
   st.plotly_chart(promoFunnelFig(promo_funnel))
   st.write("Note that customers can complelte an offer without ever viewing it.")
 
-  st.subheader("Sent Offers Distribution (deviation from uniform distribution)")
+  st.header("Sent Offers Distribution (deviation from uniform distribution)")
   offer_dist = getOffersDist(transcript_df, portfolio_df)
   st.plotly_chart(sentOffersDistributionFig(offer_dist))
 
-  st.subheader("Data")
+  st.header("Data")
   st.write(promo_funnel)
 
 elif page == "Demographic Groups":
-  st.subheader("Distribution of Demographic Groups")
+  st.header("Distribution of Demographic Groups")
 
   col1, col2 = st.columns(2)
   demog_feat = col2.radio("Demographic Feature", ["Age","Income","Cohort","Gender"])
@@ -54,7 +54,7 @@ elif page == "Demographic Groups":
   if demog_feat != "Gender":
     st.plotly_chart(demographicDistributionHist(demographics, demog_feat))
 
-  st.subheader("Data")
+  st.header("Data")
   st.write(demographics.head(50))
 
 elif page == "Offer Responsiveness - Descriptive Approach":
@@ -62,12 +62,12 @@ elif page == "Offer Responsiveness - Descriptive Approach":
   demog_spendings, spendings = createSpendingsPerGroup(df_full, demographics, time_windows, return_raw=True)
   feat_cols = ["age_group", "income_group", "cohort_group", "gender", "offer_code"]
 
-  st.subheader("Spendings per Demographic Feature")
+  st.header("Spendings per Demographic Feature")
   col1, col2 = st.columns(2)
   feat = col2.radio("Demographic Feature", feat_cols)
   col1.pyplot(spendingsPerDemographicsBar(demog_spendings, feat))
 
-  st.subheader("Best Demographic Groups per Offer")
+  st.header("Best Demographic Groups per Offer")
   st.write("Select the features for defining the demographic groups")
   col1, col2 = st.columns(2)
   with col1:
@@ -86,7 +86,7 @@ elif page == "Offer Responsiveness - Descriptive Approach":
   spendings_offers = spendings_offers.style.bar(subset=["spending_median"], color="#F63366")
   st.write(spendings_offers)
 
-  st.subheader("Best Offer per Demographic Group")
+  st.header("Best Offer per Demographic Group")
   col1, col2, col3, col4 = st.columns(4)
   group_def = []
   with col1:

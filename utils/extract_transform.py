@@ -292,13 +292,6 @@ def createTargets(transcript_feats, portfolio_df):
 
       Y_df = Y_df.merge(rs, on=["person","time"], how="left")
 
-  # Change spending targets to be defined in exclusive time windows
-  # that way inference with the fitted models are guaranteed to be monotonically non-decreasing
-  for i in range(len(time_windows)-1, 0, -1):
-      spending_col = f"spending_next_{time_windows[i]}h"
-      prev_spending_col = f"spending_next_{time_windows[i-1]}h"
-      Y_df[spending_col] -= Y_df[prev_spending_col]
-
   Y_df = Y_df[Y_df["event"]=="offer received"]
   Y_df = Y_df.drop(columns=["event","amount"])
 
